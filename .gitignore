@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Cache files
+.cache/
+.pytest_cache/
+.ipynb_checkpoints/
