@@ -13,3 +13,6 @@ wheels/
 .cache/
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Environment variables file
+.env
