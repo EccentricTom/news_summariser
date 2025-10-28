@@ -1,8 +1,6 @@
 """Test the fetch_news module."""
 
-import os
 import pytest
-import requests
 import requests_cache
 from app import fetch_news
 
@@ -44,7 +42,7 @@ def test_cache_functionality():
     # First call should populate the cache
     fetch_news.get_latest_news(cache=True)
     assert requests_cache.get_cache().contains(url=f"{fetch_news.API_URL}/news?lang={fetch_news.API_LANG}")
-    
+
     # Clear cache and ensure it's empty
     fetch_news.clear_news_cache()
     assert not requests_cache.get_cache().contains(url=f"{fetch_news.API_URL}/news?lang={fetch_news.API_LANG}")

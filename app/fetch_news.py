@@ -25,7 +25,7 @@ def fetch_news_cacheless():
         response = requests.get(f"{API_URL}/news?lang={API_LANG}")
         response.raise_for_status()
         return response.json()
-    
+
 def clear_news_cache():
     """Clear the news cache."""
     requests_cache.clear()

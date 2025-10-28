@@ -13,7 +13,7 @@ class SummarisationModel:
         """Summarise the given text."""
         summary_list = self.summarizer(text, max_length=max_length, min_length=min_length)
         return summary_list[0]['summary_text']
-    
+
 
 if __name__ == "__main__":
     summariser = SummarisationModel()

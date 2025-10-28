@@ -3,9 +3,8 @@
 The news story must first be retrieved using the provided url."""
 
 import requests
-from app.fetch_news import fetch_news, get_latest_news, get_news_by_category, fetch_news_cacheless
+from app.fetch_news import get_latest_news, get_news_by_category
 import bs4
-import transformers
 from models.summarisation_model import SummarisationModel
 
 def summarise_story(summariser: SummarisationModel, url:str) -> str:
@@ -32,7 +31,7 @@ def summarise_n_stories(summariser: SummarisationModel, stories:list) -> list[st
         summary = summarise_story(summariser, url)
         summaries.append(summary)
     return summaries
-    
+
 
 if __name__ == "__main__":
     summariser = SummarisationModel()
