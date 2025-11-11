@@ -13,6 +13,9 @@ wheels/
 .cache/
 .pytest_cache/
 .ipynb_checkpoints/
+.ruff_cache
+.mypy_cache
+.coverage
 
 # Environment variables file
 .env
