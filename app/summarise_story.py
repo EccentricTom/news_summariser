@@ -2,9 +2,7 @@
 
 The news story must first be retrieved using the provided url."""
 
-import requests
-from app.fetch_news import get_news_by_category, extract_all_stories
-import bs4
+from data.fetch_news import get_news_by_category, extract_all_stories
 from models.summarisation_model import SummarisationModel
 
 def summarise_story(summariser: SummarisationModel, story:dict) -> str:

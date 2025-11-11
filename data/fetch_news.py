@@ -10,36 +10,38 @@ import json
 import re
 import bs4
 
+# Load environment variables
 load_dotenv()
+# Setup requests cache to reduce redundant API calls
 requests_cache.install_cache('.cache/news_cache', expire_after=300)
 
 API_URL = os.getenv("API_URL")
 API_LANG = os.getenv("API_LANG")
 print(f"API_URL: {API_URL}, API_LANG: {API_LANG}")
 
-def fetch_news():
+def fetch_news_all() -> json:
     """Fetch news articles from the external API."""
     response = requests.get(f"{API_URL}/news?lang={API_LANG}")
     response.raise_for_status()
     return response.json()
 
-def fetch_news_cacheless():
+def fetch_news_all_cacheless() -> json:
     """Fetch news articles without using the cache."""
     with requests_cache.disabled():
         response = requests.get(f"{API_URL}/news?lang={API_LANG}")
         response.raise_for_status()
         return response.json()
 
-def clear_news_cache():
+def clear_news_cache() -> None:
     """Clear the news cache."""
     requests_cache.clear()
 
-def get_news_by_category(category:str, cache:bool = True):
+def get_news_by_category(category:str, cache:bool = True) -> list:
     """Get news articles by category, using cache if specified."""
     if cache:
-        news = fetch_news()
+        news = fetch_news_all()
     else:
-        news = fetch_news_cacheless()
+        news = fetch_news_all_cacheless()
     return news.get(category, [])
 
 def extract_story(story:dict) -> dict:
@@ -55,13 +57,23 @@ def extract_story(story:dict) -> dict:
     story_soup = story_soup.find("article")
     if story_soup is None:
         return story
+    article_byline = story_soup.find("div", attrs={"data-component": "byline-block"})
+    article_byline = article_byline.find("span", attrs={"data-testid": "byline-new-contributors"})
+    article_byline = article_byline.get_text("[BREAK]", strip=True)
     story_body = story_soup.find_all("div", attrs= {"data-component": "text-block"})
-    story_text = []
+    story_text: list[str] = []
     story_text = " \n\n ".join(block.get_text(" ", strip=True) for block in story_body)
     story["body"] = clean_story_body(story_text)
+    if "[BREAK]" in article_byline:
+        story["byline"] = article_byline.split("[BREAK]")[0]
+        story["reporter_title"] = article_byline.split("[BREAK]")[1]
+    else:
+        story["byline"] = article_byline
+        story["reporter_title"] = None
     return story
 
 def clean_story_body(s:str) -> str:
+    """Clean up the fetched story body for any remaining html elements."""
     # Decode HTML entities like &quot;, &amp;
     s = html.unescape(s)
     # Replace non-breaking spaces with regular spaces
@@ -83,14 +95,23 @@ def extract_all_stories(stories:list) -> list:
 
 
 if __name__ == "__main__":
+    all_news = fetch_news_all()
+    print(all_news.keys())
     latest_news = get_news_by_category("Latest",cache=False)
     print(json.dumps(latest_news, indent=2))
-    technology_news = get_news_by_category("Tech", cache=False)
+    technology_news = get_news_by_category("Business", cache=False)
     technology_news = extract_all_stories(technology_news[:3])
     for news in technology_news:
+        print("TITLE:")
         print(news.get("title"))
+        print("")
+        print("BYLINE")
+        print(news.get("byline"))
+        print("REPORTER TITLE")
+        print(news.get('reporter_title'))
         print("")
         print(news.get("body"))
         print("")
+        print("#"*30)
 
 

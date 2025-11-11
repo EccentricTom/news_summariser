@@ -2,7 +2,7 @@
 
 import pytest
 import requests_cache
-from app import fetch_news
+from data import fetch_news
 
 @pytest.fixture(autouse=True)
 def clear_cache_before_each_test():
@@ -13,7 +13,7 @@ def clear_cache_before_each_test():
 
 def test_fetch_news_returns_data():
     """Test that fetch_news returns data from the API."""
-    data = fetch_news.fetch_news()
+    data = fetch_news.fetch_news_all()
     assert isinstance(data, dict)
     assert "Latest" in data
 
