@@ -57,9 +57,14 @@ def extract_story(story:dict) -> dict:
     story_soup = story_soup.find("article")
     if story_soup is None:
         return story
-    article_byline = story_soup.find("div", attrs={"data-component": "byline-block"})
-    article_byline = article_byline.find("span", attrs={"data-testid": "byline-new-contributors"})
-    article_byline = article_byline.get_text("[BREAK]", strip=True)
+    try:
+        article_byline_block = story_soup.find("div", attrs={"data-component": "byline-block"})
+        article_byline_line = article_byline_block.find("span", attrs={"data-testid": "byline-new-contributors"})
+        if article_byline_line is None:
+            article_byline_line = article_byline_block.find("span", attrs={"data-testid": "byline-contributors"})
+        article_byline = article_byline_line.get_text("[BREAK]", strip=True)
+    except AttributeError:
+        article_byline = "Unknown"
     story_body = story_soup.find_all("div", attrs= {"data-component": "text-block"})
     story_text: list[str] = []
     story_text = " \n\n ".join(block.get_text(" ", strip=True) for block in story_body)
