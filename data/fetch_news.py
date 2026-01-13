@@ -68,7 +68,7 @@ def extract_story(story:dict) -> dict:
     story_body = story_soup.find_all("div", attrs= {"data-component": "text-block"})
     story_text: list[str] = []
     story_text = " \n\n ".join(block.get_text(" ", strip=True) for block in story_body)
-    story["body"] = clean_story_body(story_text)
+    story["full_story"] = clean_story_body(story_text)
     if "[BREAK]" in article_byline:
         story["byline"] = article_byline.split("[BREAK]")[0]
         story["reporter_title"] = article_byline.split("[BREAK]")[1]
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         print("REPORTER TITLE")
         print(news.get('reporter_title'))
         print("")
-        print(news.get("body"))
+        print(news.get("full_story"))
         print("")
         print("#"*30)
 
