@@ -11,6 +11,8 @@ class SummarisationModel:
 
     def summarise(self, text: str, max_length: int = 200, min_length: int = 30) -> str:
         """Summarise the given text."""
+        if not text or text.strip() == "":
+            return ""
         summary_list = self.summarizer(text, max_length=max_length, min_length=min_length)
         return summary_list[0]['summary_text']
 
