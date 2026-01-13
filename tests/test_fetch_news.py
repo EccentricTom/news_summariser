@@ -17,16 +17,6 @@ def test_fetch_news_returns_data():
     assert isinstance(data, dict)
     assert "Latest" in data
 
-def test_get_latest_news_with_cache():
-    """Test get_latest_news with cache enabled."""
-    latest_news = fetch_news.get_latest_news(cache=True)
-    assert isinstance(latest_news, list)
-
-def test_get_latest_news_without_cache():
-    """Test get_latest_news with cache disabled."""
-    latest_news = fetch_news.get_latest_news(cache=False)
-    assert isinstance(latest_news, list)
-
 def test_get_news_by_category_with_cache():
     """Test get_news_by_category with cache enabled."""
     tech_news = fetch_news.get_news_by_category("Tech", cache=True)
@@ -40,7 +30,7 @@ def test_get_news_by_category_without_cache():
 def test_cache_functionality():
     """Test that caching works as expected."""
     # First call should populate the cache
-    fetch_news.get_latest_news(cache=True)
+    fetch_news.fetch_news_all()
     assert requests_cache.get_cache().contains(url=f"{fetch_news.API_URL}/news?lang={fetch_news.API_LANG}")
 
     # Clear cache and ensure it's empty
