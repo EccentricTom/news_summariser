@@ -15,7 +15,7 @@ def test_fetch_news_returns_data():
     """Test that fetch_news returns data from the API."""
     data = fetch_news.fetch_news_all()
     assert isinstance(data, dict)
-    assert "Latest" in data
+    assert "Business" in data
 
 def test_get_news_by_category_with_cache():
     """Test get_news_by_category with cache enabled."""

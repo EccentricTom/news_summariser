@@ -20,7 +20,7 @@ def test_summarisation_model_basic(summariser):
 
 def test_summarisation_model_edge_case(summariser):
     """Test summarisation model with edge case input."""
-    sample_text = "Short text ."
+    sample_text = "Short text."
     summary = summariser.summarise(sample_text, max_length=20, min_length=5)
     assert isinstance(summary, str)
     assert summary == sample_text  # Expecting the same text back since it's too short to summarise

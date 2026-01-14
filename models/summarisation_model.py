@@ -11,10 +11,16 @@ class SummarisationModel:
 
     def summarise(self, text: str, max_length: int = 200, min_length: int = 30) -> str:
         """Summarise the given text."""
+        # If an empty string is provided, return an empty string
         if not text or text.strip() == "":
             return ""
         summary_list = self.summarizer(text, max_length=max_length, min_length=min_length)
-        return summary_list[0]['summary_text']
+        summary_text = summary_list[0]['summary_text']
+        # Remove space before punctuation in edge cases of short strings
+        punctuation_marks = {'.', ',', '!', '?', ';', ':'}
+        if len(summary_text) > 1 and summary_text[-2] == ' ' and summary_text[-1] in punctuation_marks:
+            summary_text = summary_text[:-2] + summary_text[-1]
+        return summary_text
 
 
 if __name__ == "__main__":
