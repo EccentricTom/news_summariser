@@ -11,6 +11,7 @@ dependencies = [
     "pytest>=8.4.2",
     "requests>=2.32.5",
     "requests-cache>=1.2.1",
+    "responses>=0.25.8",
     "sqlalchemy>=2.0.44",
     "torch>=2.9.0",
     "transformers>=4.57.1",
@@ -22,6 +23,9 @@ dependencies = [
 addopts = "--maxfail=1 --cov=tests --verbose"
 pythonpath = "."
 testpaths = "tests"
+markers = [
+    "integration: integration test",
+    "unit: unit test"]
 
 [dependency-groups]
 dev = [

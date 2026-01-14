@@ -46,7 +46,6 @@ def get_news_by_category(category:str, cache:bool = True) -> list:
 
 def extract_story(story:dict) -> dict:
     """Get news articles from news link and process"""
-    print(story)
     news_link = story.get("news_link", "")
     if not news_link:
         return story
