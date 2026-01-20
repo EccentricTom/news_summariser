@@ -21,4 +21,4 @@ wheels/
 .env
 
 # database file
-data/news_stories.db
+data/*
