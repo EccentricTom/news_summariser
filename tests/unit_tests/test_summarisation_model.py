@@ -1,58 +1,91 @@
 import pytest
-from models.summarisation_model import SummarisationModel
+
+import models.summarisation_model as sm
 
 
-@pytest.fixture(scope="module")
-def summariser():
-    """Fixture to create a summarisation model instance."""
-    return SummarisationModel()
+class FakeSummarizer:
+    def __init__(self, return_text="Some summary"):
+        self.return_text = return_text
+        self.calls = []
 
-def test_summarisation_model_basic(summariser):
-    """Test basic functionality of the summarisation model."""
-    sample_text = (
-        "The quick brown fox jumps over the lazy dog. "
-        "This is a sample text to demonstrate the summarisation capabilities of the model. "
-        "The model should be able to condense this information into a shorter form while retaining the key points."
-    )
-    summary = summariser.summarise(sample_text, max_length=50, min_length=10)
-    assert isinstance(summary, str)
-    assert len(summary) < len(sample_text)
+    def __call__(self, text, max_length, min_length):
+        self.calls.append(
+            {"text": text, "max_length": max_length, "min_length": min_length}
+        )
+        return [{"summary_text": self.return_text}]
 
-def test_summarisation_model_edge_case(summariser):
-    """Test summarisation model with edge case input."""
-    sample_text = "Short text."
-    summary = summariser.summarise(sample_text, max_length=20, min_length=5)
-    assert isinstance(summary, str)
-    assert summary == sample_text  # Expecting the same text back since it's too short to summarise
+def test_init_uses_pipeline(monkeypatch):
+    fake = FakeSummarizer()
 
-def test_summarisation_model_long_text(summariser):
-    """Test summarisation model with a long text input."""
-    sample_text = (
-        "In a village of La Mancha, the name of which I have no desire to call to mind, there lived not long since one of those gentlemen that keep a lance in the lance-rack, an old buckler, a lean hack, and a greyhound for coursing. "
-        "An olla of rather more beef than mutton, a salad on most nights, some lean chorizo, and a pigeon or so constituted his whole diet. "
-        "He was fond of reading books of chivalry with great zeal and devotion."
-    )
-    summary = summariser.summarise(sample_text, max_length=60, min_length=20)
-    assert isinstance(summary, str)
-    assert len(summary) < len(sample_text)
-    assert "village of La Mancha" in summary or "gentlemen" in summary
+    def fake_pipeline(task, model):
+        assert task == "summarization"
+        assert model == "Falconsai/text_summarization"
+        return fake
 
-def test_summarisation_model_special_characters(summariser):
-    """Test summarisation model with text containing special characters."""
-    sample_text = (
-        "Café müller is a famous café in Berlin. "
-        "It's known for its unique ambiance & delicious pastries! "
-        "Visitors often say: 'It's a must-visit spot.'"
-    )
-    summary = summariser.summarise(sample_text, max_length=40, min_length=10)
-    assert isinstance(summary, str)
-    assert len(summary) < len(sample_text)
-    assert "Café" in summary or "müller" in summary  # Ensure special characters are retained
+    monkeypatch.setattr(sm, "pipeline", fake_pipeline)
 
-def test_summarisation_model_empty_text(summariser):
-    """Test summarisation model with empty text input."""
-    sample_text = ""
-    summary = summariser.summarise(sample_text, max_length=20, min_length=5)
-    assert isinstance(summary, str)
-    assert summary == ""  # Expecting empty string back
+    m = sm.SummarisationModel()
+    assert m.summarizer is fake
+
+
+def test_summarise_empty_returns_empty(monkeypatch):
+    fake = FakeSummarizer(return_text="SHOULD NOT BE USED")
+
+    monkeypatch.setattr(sm, "pipeline", lambda task, model: fake)
+    m = sm.SummarisationModel()
+
+    assert m.summarise("") == ""
+    assert m.summarise("   \n\t") == ""
+    assert fake.calls == []  # summarizer not called for empty input
+
+
+def test_summarise_calls_underlying_with_lengths(monkeypatch):
+    fake = FakeSummarizer(return_text="OK")
+
+    monkeypatch.setattr(sm, "pipeline", lambda task, model: fake)
+    m = sm.SummarisationModel()
+
+    out = m.summarise("hello world", max_length=50, min_length=10)
+    assert out == "OK"
+    assert fake.calls == [{"text": "hello world", "max_length": 50, "min_length": 10}]
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("Hello .", "Hello."),
+        ("Hello ,", "Hello,"),
+        ("Hello !", "Hello!"),
+        ("Hello ?", "Hello?"),
+        ("Hello ;", "Hello;"),
+        ("Hello :", "Hello:"),
+    ],
+)
+def test_punctuation_space_fix(monkeypatch, raw, expected):
+    fake = FakeSummarizer(return_text=raw)
+
+    monkeypatch.setattr(sm, "pipeline", lambda task, model: fake)
+    m = sm.SummarisationModel()
+
+    assert m.summarise("some input", max_length=20, min_length=5) == expected
+
+
+def test_does_not_modify_normal_text(monkeypatch):
+    fake = FakeSummarizer(return_text="Hello world.")
+
+    monkeypatch.setattr(sm, "pipeline", lambda task, model: fake)
+    m = sm.SummarisationModel()
+
+    assert m.summarise("some input") == "Hello world."
+
+def test_raises_on_unexpected_output(monkeypatch):
+    class BadSummarizer:
+        def __call__(self, text, max_length, min_length):
+            return [{}]
+
+    monkeypatch.setattr(sm, "pipeline", lambda task, model: BadSummarizer())
+    m = sm.SummarisationModel()
+
+    with pytest.raises(ValueError):
+        m.summarise("hello")
 

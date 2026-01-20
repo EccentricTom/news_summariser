@@ -15,7 +15,9 @@ class SummarisationModel:
         if not text or text.strip() == "":
             return ""
         summary_list = self.summarizer(text, max_length=max_length, min_length=min_length)
-        summary_text = summary_list[0]['summary_text']
+        if not summary_list or "summary_text" not in summary_list[0]:
+            raise ValueError("Unexpected summarizer output")
+        summary_text = summary_list[0]["summary_text"]
         # Remove space before punctuation in edge cases of short strings
         punctuation_marks = {'.', ',', '!', '?', ';', ':'}
         if len(summary_text) > 1 and summary_text[-2] == ' ' and summary_text[-1] in punctuation_marks:
