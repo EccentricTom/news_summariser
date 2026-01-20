@@ -20,12 +20,13 @@ dependencies = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--maxfail=1 --cov=tests --verbose"
+addopts = "--maxfail=1 --cov=tests --verbose -q"
 pythonpath = "."
 testpaths = "tests"
 markers = [
     "integration: integration test",
-    "unit: unit test"]
+    "unit: unit test",
+    "live: live test"]
 
 [dependency-groups]
 dev = [

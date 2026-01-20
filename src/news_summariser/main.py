@@ -1,26 +1,28 @@
 from sqlalchemy.orm import Session
 
 from news_summariser.config import load_settings
+from news_summariser.client.news_api_client import NewsApiClient
 from news_summariser.db.engine import create_db_engine
 from news_summariser.db.init import create_tables
 from news_summariser.db.repository import NewsRepository
 from news_summariser.models.summarisation_model import SummarisationModel
-from news_summariser.data.fetch_news import get_news_by_category, extract_all_stories
+from news_summariser.parsing.bbc_article_parser import extract_all_stories
 
 
 def run_once():
-    settings = load_settings()  # expects DB_URL etc.
+    settings = load_settings()
     engine = create_db_engine(settings.db_url, echo=False)
     create_tables(engine)
 
+    api = NewsApiClient(settings.api_url, settings.api_lang)
     summariser = SummarisationModel()
 
-    categories = ["Technology", "Business", "entertainment"]
+    categories = ["Technology", "Business", "Entertainment"]
     all_news = []
 
     for category in categories:
-        news_stories = get_news_by_category(category, cache=False)
-        detailed = extract_all_stories(news_stories)
+        stories = api.get_by_category(category, cache=False)
+        detailed = extract_all_stories(stories)  # uses requests.Session() internally unless you inject one
 
         for story in detailed[:2]:
             full_story = story.get("full_story", "")
@@ -36,4 +38,3 @@ def run_once():
 
 if __name__ == "__main__":
     run_once()
-
