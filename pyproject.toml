@@ -39,3 +39,6 @@ select = ["E", "F", "W", "C90"]
 ignore = ["E501"]
 exclude = ["venv/", ".venv/", "__pypackages__/"]
 
+[project.scripts]
+news-summariser = "news_summariser.main:run_once"
+

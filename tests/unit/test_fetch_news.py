@@ -42,11 +42,11 @@ def test_get_news_by_category_existing(api_env):
     responses.add(
         responses.GET,
         "https://fake-api.local/news?lang=en",
-        json={"Tech": [{"title": "T1"}]},
+        json={"Technology": [{"title": "T1"}]},
         status=200,
     )
 
-    tech_news = fetch_news.get_news_by_category("Tech", cache=True)
+    tech_news = fetch_news.get_news_by_category("Technology", cache=True)
     assert tech_news == [{"title": "T1"}]
 
 
@@ -59,7 +59,7 @@ def test_get_news_by_category_missing_returns_empty_list(api_env):
         status=200,
     )
 
-    missing = fetch_news.get_news_by_category("Tech", cache=True)
+    missing = fetch_news.get_news_by_category("Technology", cache=True)
     assert missing == []
 
 
