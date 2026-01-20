@@ -2,7 +2,7 @@
 
 import requests
 import requests_cache
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 import html
 import unicodedata
@@ -11,30 +11,39 @@ import re
 import bs4
 
 # Load environment variables
-load_dotenv()
+load_dotenv(find_dotenv())
 # Setup requests cache to reduce redundant API calls
 requests_cache.install_cache('.cache/news_cache', expire_after=300)
 
-API_URL = os.getenv("API_URL")
-API_LANG = os.getenv("API_LANG")
-print(f"API_URL: {API_URL}, API_LANG: {API_LANG}")
+def _api_url() -> str:
+    url = os.getenv("API_URL")
+    if not url:
+        raise RuntimeError("API_URL is not set")
+    return url
 
-def fetch_news_all() -> json:
-    """Fetch news articles from the external API."""
-    response = requests.get(f"{API_URL}/news?lang={API_LANG}")
-    response.raise_for_status()
-    return response.json()
+def _api_lang() -> str:
+    lang = os.getenv("API_LANG", "en")
+    return lang
 
-def fetch_news_all_cacheless() -> json:
-    """Fetch news articles without using the cache."""
-    with requests_cache.disabled():
-        response = requests.get(f"{API_URL}/news?lang={API_LANG}")
-        response.raise_for_status()
-        return response.json()
+# create a cached session (test can monkeypatch this)
+session = requests_cache.CachedSession(
+    cache_name=".cache/news_cache",
+    expire_after=300,
+)
 
-def clear_news_cache() -> None:
-    """Clear the news cache."""
-    requests_cache.clear()
+def fetch_news_all():
+    resp = session.get(f"{_api_url()}/news?lang={_api_lang()}")
+    resp.raise_for_status()
+    return resp.json()
+
+def fetch_news_all_cacheless():
+    with session.cache_disabled():
+        resp = session.get(f"{_api_url()}/news?lang={_api_lang()}")
+        resp.raise_for_status()
+        return resp.json()
+
+def clear_news_cache():
+    session.cache.clear()
 
 def get_news_by_category(category:str, cache:bool = True) -> list:
     """Get news articles by category, using cache if specified."""
@@ -52,7 +61,7 @@ def extract_story(story:dict) -> dict:
     response = requests.get(news_link)
     response.raise_for_status()
     story_html = response.content.decode("utf-8")
-    story_soup = bs4.BeautifulSoup(story_html)
+    story_soup = bs4.BeautifulSoup(story_html, features = "html.parser")
     story_soup = story_soup.find("article")
     if story_soup is None:
         return story
