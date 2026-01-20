@@ -12,8 +12,6 @@ import bs4
 
 # Load environment variables
 load_dotenv(find_dotenv())
-# Setup requests cache to reduce redundant API calls
-requests_cache.install_cache('.cache/news_cache', expire_after=300)
 
 def _api_url() -> str:
     url = os.getenv("API_URL")
@@ -28,7 +26,7 @@ def _api_lang() -> str:
 # create a cached session (test can monkeypatch this)
 session = requests_cache.CachedSession(
     cache_name=".cache/news_cache",
-    expire_after=300,
+    expire_after=600,
 )
 
 def fetch_news_all():
