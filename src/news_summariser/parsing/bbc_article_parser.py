@@ -4,6 +4,36 @@ import unicodedata
 import re
 import bs4
 import requests
+from urllib.parse import urlparse, urljoin
+
+BBC_BASE = "https://www.bbc.com"
+
+def normalize_news_link(link: str, base: str = BBC_BASE) -> str:
+    if not link:
+        return ""
+
+    link = link.strip()
+
+    # If "http(s)://" appears later in the string, keep only from there.
+    m = re.search(r"https?://", link)
+    if m and m.start() != 0:
+        link = link[m.start():]
+
+    # Handle protocol-relative URLs: //www.bbc.com/...
+    if link.startswith("//"):
+        link = "https:" + link
+
+    # Handle relative paths: /sport/...
+    if link.startswith("/"):
+        link = urljoin(base, link)
+
+    # If still no scheme, assume https
+    parsed = urlparse(link)
+    if not parsed.scheme:
+        link = "https://" + link
+
+    return link
+
 
 
 def extract_story_from_html(story: dict, story_html: str) -> dict:
@@ -38,13 +68,17 @@ def extract_story_from_html(story: dict, story_html: str) -> dict:
 
 def extract_story(story: dict, session: Optional[requests.Session] = None) -> dict:
     """Fetch article HTML via story['news_link'] and parse it."""
-    news_link = story.get("news_link", "")
+    news_link = normalize_news_link(story.get("news_link", ""))
     if not news_link:
         return story
 
     sess = session or requests.Session()
-    resp = sess.get(news_link)
-    resp.raise_for_status()
+    try:
+        resp = sess.get(news_link, timeout=15)
+        resp.raise_for_status()
+    except requests.RequestException:
+        # Skip broken/blocked links without killing the entire run
+        return story
 
     return extract_story_from_html(story, resp.text)
 

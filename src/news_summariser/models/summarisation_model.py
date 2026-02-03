@@ -24,11 +24,28 @@ class SummarisationModel:
         if not text or text.strip() == "":
             return ""
 
-        summary_list = self.summarizer(text, max_length=max_length, min_length=min_length)
+        text = text.strip()
+        if len(text) > 4000:
+            text = text[:4000]
+
+        # Prefer max_new_tokens to avoid the warning you’re seeing
+        try:
+            summary_list = self.summarizer(
+                text,
+                max_new_tokens=max_length,
+                min_new_tokens=min_length,
+                truncation=True,
+            )
+        except TypeError:
+            # fallback for pipelines/models that don't accept min_new_tokens
+            summary_list = self.summarizer(
+                text,
+                max_new_tokens=max_length,
+                truncation=True,
+            )
 
         if not summary_list or "summary_text" not in summary_list[0]:
             raise ValueError("Unexpected summarizer output")
-
         summary_text = summary_list[0]["summary_text"]
 
         punctuation_marks = {".", ",", "!", "?", ";", ":"}

@@ -36,7 +36,7 @@ def pipeline(story_limit: Optional[int] = None):
 
     for category in categories:
         stories = api.get_by_category(category, cache=False)
-        detailed = extract_all_stories(stories)  # uses requests.Session() internally unless you inject one
+        detailed = extract_all_stories(stories, session=api.session)
         if story_limit is not None:
             detailed = detailed[:story_limit]
         for story in detailed:
