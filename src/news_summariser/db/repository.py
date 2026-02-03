@@ -8,19 +8,16 @@ class NewsRepository:
         self.session = session
 
     def insert_many(self, news_data: Iterable[Dict]) -> int:
-        """
-        Inserts rows. Uses merge() so repeated titles update existing rows
-        (nice for periodic ingestion).
-        Returns number of processed items.
-        """
         count = 0
         for story in news_data:
             title = story.get("title")
-            if not title:  # skip invalid entries
+            if not title:
                 continue
-            for key in ["category", "summary", "full_story"]:
-                if key not in story or story[key] is None:
-                    continue
+
+            required = ("category", "summary", "full_story")
+            if any(story.get(k) is None for k in required):
+                continue
+
             row = NewsTable(
                 title=title,
                 category=story.get("category"),
@@ -34,3 +31,4 @@ class NewsRepository:
 
         self.session.commit()
         return count
+
