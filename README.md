@@ -59,7 +59,6 @@ Sentiment analysis exists in the codebase but is currently disabled in the pipel
 │       ├── test_news_api_client.py
 │       ├── test_repository_sqlite.py
 │       └── test_summarisation_model.py
-├── .env
 ├── .gitignore
 ├── .python-version
 ├── Makefile
@@ -118,7 +117,7 @@ By default it runs the pipeline with `story_limit=5` (per category).
 
 If you want to run it with a different limit, adjust `run_once()` in `src/news_summariser/main.py` or call the pipeline directly from a small script:
 
-```bash
+```python
 from news_summariser.services.news_summary_sentiment_pipeline import pipeline
 
 pipeline(story_limit=10)
@@ -134,7 +133,7 @@ Persistence is handled via:
 
 ## Tests
 
-Tests are split by intent:
+Tests are split by intent to keep fast feedback during development while still allowing end-to-end validation when needed:
 - `tests/unit/`: No external network calls. Focused on parsing, models, repository behaviour.
 - `tests/integration/`: Exercises pipeline storage and DB integration.
 - `tests/live/`: Calls the live API. These tests require network access and a working `API_URL`.
@@ -146,7 +145,7 @@ make test-all
 
 To skip live tests:
 ```bash
-test-no-live
+make test-no-live
 ```
 ## Notes/Limitations
 
