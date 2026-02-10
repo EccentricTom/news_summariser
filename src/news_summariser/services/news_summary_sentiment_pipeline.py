@@ -31,7 +31,7 @@ def pipeline(story_limit: Optional[int] = None):
     summariser = SummarisationModel()
     sentiment_analyser = SentimentModel()
 
-    categories = ["Technology", "Business", "Entertainment"]
+    categories = settings.news_category
     all_news = []
 
     for category in categories:
@@ -43,7 +43,11 @@ def pipeline(story_limit: Optional[int] = None):
             full_story = story.get("full_story", "")
             if full_story:
                 story["summary"] = summariser.summarise(full_story, max_length=150, min_length=30)
-                #story["sentiment"] = sentiment_analyser.get_sentiment(full_story)
+                story_sentiment = sentiment_analyser.get_sentiment(story["summary"])
+                story["sentiment"] = story_sentiment[0]["label"]
+                story["sentiment_score"] = story_sentiment[0]["score"]
+                print(story["title"])
+                print("sentiment:", story["sentiment"])
             story["category"] = category
             all_news.append(story)
 
