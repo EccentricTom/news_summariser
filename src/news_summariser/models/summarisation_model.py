@@ -32,16 +32,14 @@ class SummarisationModel:
         try:
             summary_list = self.summarizer(
                 text,
-                max_new_tokens=max_length,
-                min_new_tokens=min_length,
-                truncation=True,
+                max_length=max_length,
+                min_length=min_length,
             )
         except TypeError:
             # fallback for pipelines/models that don't accept min_new_tokens
             summary_list = self.summarizer(
                 text,
-                max_new_tokens=max_length,
-                truncation=True,
+                max_length=max_length,
             )
 
         if not summary_list or "summary_text" not in summary_list[0]:
